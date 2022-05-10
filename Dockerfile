@@ -1,5 +1,5 @@
 #!/bin/bash
-FROM --platform=linux/arm32v7 node:18
+FROM --platform=linux/arm/v7 node:18
 
 WORKDIR /usr/src/app
 
