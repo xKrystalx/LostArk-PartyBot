@@ -4,7 +4,7 @@
   "description": "Discord bot for the Lost Ark guild. Is able to make parties for various raids.",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
   "keywords": [
     "discord",
