@@ -42,20 +42,41 @@ Classes.hasMany(Players, {foreignKey: 'class'});
 Players.belongsTo(Classes, {foreignKey: 'class'})
 
 // When the client is ready, run this code (only once)
-client.once('ready', () => {
-    sequelize.sync({force: true}).then(async () =>{
-        await sequelize_fixtures.loadFile('./data/classes/*.json', {'Classes': Classes}).then(() => {
-            console.log("[Database] Classes loaded successfully.");
-        });
+client.once('ready', async () => {
+    // sequelize.sync({force: true}).then(async () =>{
+    //     await sequelize_fixtures.loadFile('./data/classes/*.json', {'Classes': Classes}).then(() => {
+    //         console.log("[Database] Classes loaded successfully.");
+    //     });
+    //     await sequelize_fixtures.loadFile('./data/dungeon_types/*.json', {'DungeonTypes': DungeonTypes}).then(() => {
+    //         console.log("[Database] Dungeon types loaded successfully.");
+    //     });
+    //     await sequelize_fixtures.loadFile('./data/dungeons/*.json', {'Dungeons': Dungeons}).then(() => {
+    //         console.log("[Database] Dungeons loaded successfully.");
+    //     });
+        
+    //     console.log('Ready!');
+    // }).catch(err => console.error(err.message));
+
+    await DungeonTypes.sync().then(async () => {
         await sequelize_fixtures.loadFile('./data/dungeon_types/*.json', {'DungeonTypes': DungeonTypes}).then(() => {
             console.log("[Database] Dungeon types loaded successfully.");
         });
+    }).catch(err => console.error(err));
+    await Dungeons.sync().then(async () =>{
         await sequelize_fixtures.loadFile('./data/dungeons/*.json', {'Dungeons': Dungeons}).then(() => {
             console.log("[Database] Dungeons loaded successfully.");
         });
-        
-        console.log('Ready!');
-    }).catch(err => console.error(err.message));
+    }).catch(err => console.error(err));
+    await Classes.sync().then(async () =>{
+        await sequelize_fixtures.loadFile('./data/classes/*.json', {'Classes': Classes}).then(() => {
+            console.log("[Database] Classes loaded successfully.");
+        });     
+    }).catch(err => console.error(err));
+
+    await Parties.sync();
+    await Players.sync();
+
+    console.log('Ready!');
 });
 
 // Login to Discord with your client's token
@@ -144,13 +165,18 @@ client.on('interactionCreate', async interaction => {
             return;
         }
 
+        if(dungeonType === null){
+            console.error("[Database] Dungeon type not found.");
+            return;
+        }
+
         const selectionEmbed = interaction.message.embeds[0].fields.find(field => field.name.toLowerCase() === "description")
 
         const partyData = {
             id: short_uuid.generate(),
             type: dungeon.name,
             owner_id: interaction.user.id,
-            description: selectionEmbed !== undefined ?  selectionEmbed.value : "",
+            description: selectionEmbed !== undefined ?  selectionEmbed.value : "\u200b",
         }
 
         const party = await Parties.create(partyData);
@@ -271,7 +297,7 @@ client.on('interactionCreate', async interaction => {
                 model: Classes,
             }]
         })
-        console.log(`Supports: ${supportCount} Max: ${maxSupports}`);
+        //console.log(`Supports: ${supportCount} Max: ${maxSupports}`);
         if(supportCount >= maxSupports){
             //No more support slots
             let embed = getErrorEmbed(`No more support slots (Max. ${supportCount}).`);
@@ -290,7 +316,7 @@ client.on('interactionCreate', async interaction => {
             }]
         })
         const maxDps = dungeon.player_count - maxSupports;
-        console.log(`DPS: ${dpsCount} Max: ${maxDps}`);
+        //console.log(`DPS: ${dpsCount} Max: ${maxDps}`);
         if(dpsCount >= maxDps){
             //No more support slots
             let embed = getErrorEmbed(`No more DPS slots (Max. ${dpsCount}).`);
@@ -350,6 +376,14 @@ client.on('interactionCreate', async interaction => {
         }).catch(err => {
             console.error(err);
         })
+
+        if(party === null){
+            console.error("[Database] Party not found.");
+            const embed = getErrorEmbed("Party does not exist.");
+            await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+            await interaction.message.destroy();
+            return;
+        }
 
         //Check if party is full
         const partyCount = await Players.count({
@@ -446,6 +480,14 @@ client.on('interactionCreate', async interaction => {
             console.error(err);
         })
 
+        if(party === null){
+            console.error("[Database] Party not found.");
+            const embed = getErrorEmbed("Party does not exist.");
+            await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+            await interaction.message.destroy();
+            return;
+        }
+
         const player = await Players.findOne({where: {
             id: interaction.user.id,
             party_id: partyId,
@@ -492,8 +534,13 @@ if(interaction.customId == "dungeon_delete"){
         console.error(err);
     })
     if(party === null){
-        embed = getErrorEmbed("Couldn't delete the party.");
+        console.error("[Database] Party not found.");
+        const embed = getErrorEmbed("Couldn't delete (Party does not exist).");
+        await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+        await interaction.message.destroy();
+        return;
     }
+
     await party.destroy().then(() => {
         embed = getSuccessEmbed("Successfully deleted the party");
     }).catch(err => {
