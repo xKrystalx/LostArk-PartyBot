@@ -1,0 +1,12 @@
+[
+    {
+        "model": "Dungeons",
+        "data":{
+            "name": "Valtan",
+            "player_count": 8,
+            "type": "Legion Raid",
+            "level": 1415,
+            "image": ""
+        }
+    }
+]

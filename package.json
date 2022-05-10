@@ -1,0 +1,28 @@
+{
+  "name": "guild-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for the Lost Ark guild. Is able to make parties for various raids.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "lost",
+    "ark"
+  ],
+  "author": "Krystal",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^0.13.0",
+    "@discordjs/rest": "^0.4.1",
+    "discord-api-types": "^0.32.0",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
+    "sequelize": "^6.19.0",
+    "sequelize-fixtures": "^1.2.0",
+    "short-uuid": "^4.2.0",
+    "sqlite3": "^5.0.6"
+  }
+}

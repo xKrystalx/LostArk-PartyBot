@@ -1,0 +1,23 @@
+[
+    {
+        "model": "DungeonTypes",
+        "data":{
+            "name": "Abyss Dungeon",
+            "image": "https://imgur.com/gbCFVLY.png"
+        }
+    },
+    {
+        "model": "DungeonTypes",
+        "data":{
+            "name": "Abyss Raid",
+            "image": "https://imgur.com/04tHmrR.png"
+        }
+    },
+    {
+        "model": "DungeonTypes",
+        "data":{
+            "name": "Legion Raid",
+            "image": "https://imgur.com/w9TDUhI.png"
+        }
+    }
+]

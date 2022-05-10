@@ -1,0 +1,23 @@
+[
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Berserker",
+            "type": "DPS"
+        }
+    },
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Paladin",
+            "type": "Support"
+        }
+    },
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Gunlancer",
+            "type": "DPS"
+        }
+    }
+]

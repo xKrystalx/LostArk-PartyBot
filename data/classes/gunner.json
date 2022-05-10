@@ -1,0 +1,30 @@
+[
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Gunslinger",
+            "type": "DPS"
+        }
+    },
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Artillerist",
+            "type": "DPS"
+        }
+    },
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Deadeye",
+            "type": "DPS"
+        }
+    },
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Sharpshooter",
+            "type": "DPS"
+        }
+    }
+]

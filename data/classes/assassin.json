@@ -1,0 +1,16 @@
+[
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Shadowhunter",
+            "type": "DPS"
+        }
+    },
+    {
+        "model": "Classes",
+        "data":{
+            "name": "Deathblade",
+            "type": "DPS"
+        }
+    }
+]
