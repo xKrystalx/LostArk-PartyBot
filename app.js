@@ -286,44 +286,58 @@ client.on('interactionCreate', async interaction => {
             return;
         });
 
-        //Check support count
+        const playerClassType = await Classes.findOne({
+            where:{
+                name: playerData.class,
+            }
+        })
+        if(playerClassType === null){
+            let embed = getErrorEmbed(`Error fetching class data.`);
+            await interaction.update({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+            return;
+        }
+
         const maxSupports = dungeon.player_count/4;
-        const supportCount = await Players.count({
-            where:{
-                party_id: partyId,
-                '$Class.type$': 'Support',
-        },
-            include:[{
-                model: Classes,
-            }]
-        })
-        //console.log(`Supports: ${supportCount} Max: ${maxSupports}`);
-        if(supportCount >= maxSupports){
-            //No more support slots
-            let embed = getErrorEmbed(`No more support slots (Max. ${supportCount}).`);
-            await interaction.update({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
-            return;
-        }
 
-        //Check DPS count
-        const dpsCount = await Players.count({
-            where:{
-                party_id: partyId,
-                '$Class.type$': 'DPS',
-        },
-            include:[{
-                model: Classes,
-            }]
-        })
-        const maxDps = dungeon.player_count - maxSupports;
-        //console.log(`DPS: ${dpsCount} Max: ${maxDps}`);
-        if(dpsCount >= maxDps){
-            //No more support slots
-            let embed = getErrorEmbed(`No more DPS slots (Max. ${dpsCount}).`);
-            await interaction.update({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
-            return;
+        if(playerClassType.type == 'Support'){
+            //Check support count
+            const supportCount = await Players.count({
+                where:{
+                    party_id: partyId,
+                    '$Class.type$': 'Support',
+            },
+                include:[{
+                    model: Classes,
+                }]
+            })
+            //console.log(`Supports: ${supportCount} Max: ${maxSupports}`);
+            if(supportCount >= maxSupports){
+                //No more support slots
+                let embed = getErrorEmbed(`No more support slots (Max. ${supportCount}).`);
+                await interaction.update({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+                return;
+            }
         }
-
+        else {
+            //Check DPS count
+            const dpsCount = await Players.count({
+                where:{
+                    party_id: partyId,
+                    '$Class.type$': 'DPS',
+            },
+                include:[{
+                    model: Classes,
+                }]
+            })
+            const maxDps = dungeon.player_count - maxSupports;
+            //console.log(`DPS: ${dpsCount} Max: ${maxDps}`);
+            if(dpsCount >= maxDps){
+                //No more support slots
+                let embed = getErrorEmbed(`No more DPS slots (Max. ${dpsCount}).`);
+                await interaction.update({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+                return;
+            }
+        }
         const partyMember = await Players.create(playerData).catch(err => {
             console.error(err.message);
             embed = getErrorEmbed("Couldn't join the party.", `Party ID: ${partyId}`);
