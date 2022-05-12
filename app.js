@@ -264,7 +264,7 @@ client.on('interactionCreate', async interaction => {
         });
 
         if(partyMessage === undefined){
-            await interaction.update({embeds:[embed], ephemeral: true});
+            await interaction.update({embeds:[embed], ephemeral: true, components:[]});
             return;
         }
         //Now we can attempt to add the player to the party
@@ -272,7 +272,7 @@ client.on('interactionCreate', async interaction => {
         const dungeonName = interaction.message.embeds[0].fields.find(field => field.name === 'Dungeon').value;
         if(dungeonName === undefined){
             embed = getErrorEmbed("Error getting dungeon info.");
-            await interaction.update({embeds:[embed], ephemeral:true});
+            await interaction.update({embeds:[embed], ephemeral: true, components:[]}).catch(err => console.log(err.message));
             return;
         }
         const dungeon = await Dungeons.findOne({
@@ -282,7 +282,7 @@ client.on('interactionCreate', async interaction => {
         }).catch(async err => {
             console.error(err.message);
             embed = getErrorEmbed("Error getting dungeon info.");
-            await interaction.update({embeds:[embed], ephemeral:true});
+            await interaction.update({embeds:[embed], ephemeral: true, components:[]}).catch(err => console.log(err.message));
             return;
         });
 
@@ -293,7 +293,7 @@ client.on('interactionCreate', async interaction => {
         })
         if(playerClassType === null){
             let embed = getErrorEmbed(`Error fetching class data.`);
-            await interaction.update({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+            await interaction.update({embeds:[embed], ephemeral: true, components:[]}).catch(err => console.log(err.message));
             return;
         }
 
@@ -314,7 +314,7 @@ client.on('interactionCreate', async interaction => {
             if(supportCount >= maxSupports){
                 //No more support slots
                 let embed = getErrorEmbed(`No more support slots (Max. ${supportCount}).`);
-                await interaction.update({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+                await interaction.update({embeds:[embed], ephemeral: true, components:[]}).catch(err => console.log(err.message));
                 return;
             }
         }
@@ -334,7 +334,7 @@ client.on('interactionCreate', async interaction => {
             if(dpsCount >= maxDps){
                 //No more support slots
                 let embed = getErrorEmbed(`No more DPS slots (Max. ${dpsCount}).`);
-                await interaction.update({embeds:[embed], ephemeral:true}).catch(err => console.error(err.message));
+                await interaction.update({embeds:[embed], ephemeral: true, components:[]}).catch(err => console.log(err.message));
                 return;
             }
         }
@@ -344,7 +344,7 @@ client.on('interactionCreate', async interaction => {
         });
 
         if(partyMember === undefined){
-            await interaction.update({embeds:[embed], ephemeral: true}).catch(err => console.error(err.message));
+            await interaction.update({embeds:[embed], ephemeral: true, components:[]}).catch(err => console.log(err.message));
             return;
         }
 
