@@ -95,8 +95,9 @@ client.on('interactionCreate', async interaction => {
 
     if(interaction.commandName === "party"){
         let fields = [];
-        if(interaction.options.getString('description') !== null){
-
+        let description = "";
+        if(interaction.options.getString('description') != null){
+            description = interaction.options.getString('description');
             //Protect from 1024 string length error
             if(interaction.options.getString('description'.length >= 1000)){
                 let embed = getErrorEmbed('Ayo, what the fuck man.');
@@ -106,7 +107,7 @@ client.on('interactionCreate', async interaction => {
             fields = [
                 // { name: '\u200b', value: '\u200b'},
                 // { name: '『 Party details 』', value: '\u200b'},
-                { name: 'Description', value: interaction.options.getString('description')},
+                { name: 'Description', value: description},
             ];
         }
 
@@ -144,7 +145,7 @@ client.on('interactionCreate', async interaction => {
             return;
         }
         else{
-            await sendDungeonMenu(interaction).catch(err => console.error(err));
+            await sendDungeonMenu(interaction, description).catch(err => console.error(err));
             return;
         }
     }
@@ -160,7 +161,7 @@ client.on('interactionCreate', async interaction => {
     if(interaction.customId === "dungeon_event"){
 
         let description = interaction.message.embeds[0].fields.find(field => field.name.toLowerCase() === 'description');
-        description = description != null ? description.text : "";
+        description = description != null ? description.value : "";
 
         await sendDungeonMenu(interaction, description, interaction.values[0], true);
     }
@@ -276,7 +277,7 @@ client.on('interactionCreate', async interaction => {
         await interaction.channel.threads.create({
             startMessage: msg,
             name: dungeon.name,
-            autoArchiveDuration: 7200
+            autoArchiveDuration: 4320
         }).catch(err => {
             console.error(err);
             return;
@@ -676,8 +677,7 @@ async function sendDungeonMenu(interaction, description = "", eventUrl = null, e
     );
 
     let fields = [];
-
-    if(description !== ""){
+    if(description != ""){
         fields.push({
             name: 'Description', 
             value: description, 
