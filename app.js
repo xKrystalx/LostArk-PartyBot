@@ -275,7 +275,8 @@ client.on('interactionCreate', async interaction => {
 
         await interaction.channel.threads.create({
             startMessage: msg,
-            name: dungeon.name
+            name: dungeon.name,
+            autoArchiveDuration: 7200
         }).catch(err => {
             console.error(err);
             return;
