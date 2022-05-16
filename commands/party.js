@@ -7,4 +7,7 @@ module.exports = {
     .addStringOption(option => option
         .setName('description')
         .setDescription('Set a description for the new party.'))
+    .addBooleanOption(option => option
+        .setName('has_event')
+        .setDescription('Is party using a scheduled event?'))
 };

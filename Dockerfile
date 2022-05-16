@@ -1,9 +1,11 @@
 #!/bin/bash
-FROM --platform=linux/arm/v7 node:18
+FROM node:18
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+
+RUN npm config set registry https://registry.npmjs.org/
 
 RUN npm install
 
