@@ -6,6 +6,7 @@
             "player_count": 8,
             "type": "Legion Raid",
             "level": 1415,
+            "color": "#62e9d4",
             "image": "https://i.imgur.com/ZtLMOe2.png"
         }
     },
@@ -16,6 +17,7 @@
             "player_count": 8,
             "type": "Legion Raid",
             "level": 1445,
+            "color": "#ce2030",
             "image": "https://i.imgur.com/4tBS3J2.png"
         }
     }

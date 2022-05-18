@@ -57,17 +57,17 @@ client.once('ready', async () => {
     //     console.log('Ready!');
     // }).catch(err => console.error(err));
 
-    await DungeonTypes.sync().then(async () => {
+    await DungeonTypes.sync({alter: true}).then(async () => {
         await sequelize_fixtures.loadFile('./data/dungeon_types/*.json', {'DungeonTypes': DungeonTypes}).then(() => {
             console.log("[Database] Dungeon types loaded successfully.");
         });
     }).catch(err => console.error(err));
-    await Dungeons.sync().then(async () =>{
+    await Dungeons.sync({alter: true}).then(async () =>{
         await sequelize_fixtures.loadFile('./data/dungeons/*.json', {'Dungeons': Dungeons}).then(() => {
             console.log("[Database] Dungeons loaded successfully.");
         });
     }).catch(err => console.error(err));
-    await Classes.sync().then(async () =>{
+    await Classes.sync({alter: true}).then(async () =>{
         await sequelize_fixtures.loadFile('./data/classes/*.json', {'Classes': Classes}).then(() => {
             console.log("[Database] Classes loaded successfully.");
         });     
