@@ -1,23 +1,17 @@
 [
     {
-        "model": "DungeonTypes",
-        "data":{
-            "name": "Abyss Dungeon",
-            "image": "https://imgur.com/gbCFVLY.png"
-        }
+        "name": "abyss_dungeon",
+        "displayname": "Abyss Dungeon",
+        "image": "https://imgur.com/gbCFVLY.png"
     },
     {
-        "model": "DungeonTypes",
-        "data":{
-            "name": "Abyss Raid",
-            "image": "https://imgur.com/04tHmrR.png"
-        }
+        "name": "abyss_raid",
+        "displayname":"Abyss Raid",
+        "image": "https://imgur.com/04tHmrR.png"
     },
     {
-        "model": "DungeonTypes",
-        "data":{
-            "name": "Legion Raid",
-            "image": "https://imgur.com/w9TDUhI.png"
-        }
+        "name": "legion_raid",
+        "displayname": "Legion Raid",
+        "image": "https://imgur.com/w9TDUhI.png"
     }
 ]

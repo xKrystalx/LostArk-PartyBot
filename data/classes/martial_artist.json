@@ -1,37 +1,22 @@
 [
     {
-        "model": "Classes",
-        "data":{
-            "name": "Striker",
-            "type": "DPS"
-        }
+        "name": "Striker",
+        "type": "DPS"
     },
     {
-        "model": "Classes",
-        "data":{
-            "name": "Wardancer",
-            "type": "DPS"
-        }
+        "name": "Wardancer",
+        "type": "DPS"
     },
     {
-        "model": "Classes",
-        "data":{
-            "name": "Scrapper",
-            "type": "DPS"
-        }
+        "name": "Scrapper",
+        "type": "DPS"
     },
     {
-        "model": "Classes",
-        "data":{
-            "name": "Soulfist",
-            "type": "DPS"
-        }
+        "name": "Soulfist",
+        "type": "DPS"
     },
     {
-        "model": "Classes",
-        "data":{
-            "name": "Glaivier",
-            "type": "DPS"
-        }
+        "name": "Glaivier",
+        "type": "DPS"
     }
 ]

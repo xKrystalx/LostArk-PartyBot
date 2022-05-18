@@ -1,16 +1,10 @@
 [
     {
-        "model": "Classes",
-        "data":{
-            "name": "Sorceress",
-            "type": "DPS"
-        }
+        "name": "Sorceress",
+        "type": "DPS"
     },
     {
-        "model": "Classes",
-        "data":{
-            "name": "Bard",
-            "type": "Support"
-        }
+        "name": "Bard",
+        "type": "Support"
     }
 ]

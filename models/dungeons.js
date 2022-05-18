@@ -5,6 +5,9 @@ module.exports = function(sequelize, DataTypes){
             primaryKey: true,
             allowNull: false,
         },
+        displayname:{
+            type: DataTypes.STRING,
+        },
         player_count: {
             type: DataTypes.INTEGER,
             defaultValue: 4,

@@ -1,24 +1,20 @@
 [
     {
-        "model": "Dungeons",
-        "data":{
-            "name": "Valtan",
-            "player_count": 8,
-            "type": "Legion Raid",
-            "level": 1415,
-            "color": "#62e9d4",
-            "image": "https://i.imgur.com/ZtLMOe2.png"
-        }
+        "name": "valtan",
+        "displayname": "Valtan",
+        "player_count": 8,
+        "type": "legion_raid",
+        "level": 1415,
+        "color": "#62e9d4",
+        "image": "https://i.imgur.com/ZtLMOe2.png"
     },
     {
-        "model": "Dungeons",
-        "data":{
-            "name": "[Hard] Valtan",
-            "player_count": 8,
-            "type": "Legion Raid",
-            "level": 1445,
-            "color": "#ce2030",
-            "image": "https://i.imgur.com/4tBS3J2.png"
-        }
+        "name": "valtan_hard",
+        "displayname": "Valtan [Hard]",
+        "player_count": 8,
+        "type": "legion_raid",
+        "level": 1445,
+        "color": "#ce2030",
+        "image": "https://i.imgur.com/4tBS3J2.png"
     }
 ]

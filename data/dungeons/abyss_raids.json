@@ -1,35 +1,29 @@
 [
     {
-        "model": "Dungeons",
-        "data":{
-            "name": "Argos [Phase #1]",
-            "player_count": 8,
-            "type": "Abyss Raid",
-            "level": 1370,
-            "color": "#73c9c4",
-            "image": "https://imgur.com/GBjfVMw.png"
-        }
+        "name": "argos_phase1",
+        "displayname": "Argos [Phase #1]",
+        "player_count": 8,
+        "type": "abyss_raid",
+        "level": 1370,
+        "color": "#73c9c4",
+        "image": "https://imgur.com/GBjfVMw.png"
     },
     {
-        "model": "Dungeons",
-        "data":{
-            "name": "Argos [Phase #2]",
-            "player_count": 8,
-            "type": "Abyss Raid",
-            "level": 1385,
-            "color": "#73c9c4",
-            "image": "https://imgur.com/GBjfVMw.png"
-        }
+        "name": "argos_phase2",
+        "displayname": "Argos [Phase #2]",
+        "player_count": 8,
+        "type": "abyss_raid",
+        "level": 1385,
+        "color": "#73c9c4",
+        "image": "https://imgur.com/GBjfVMw.png"
     },
     {
-        "model": "Dungeons",
-        "data":{
-            "name": "Argos [Phase #3]",
-            "player_count": 8,
-            "type": "Abyss Raid",
-            "level": 1400,
-            "color": "#d47c7d",
-            "image": "https://imgur.com/SCP2Ypz.png"
-        }
+        "name": "argos_phase3",
+        "displayname": "Argos [Phase #3]",
+        "player_count": 8,
+        "type": "abyss_raid",
+        "level": 1400,
+        "color": "#d47c7d",
+        "image": "https://imgur.com/SCP2Ypz.png"
     }
 ]

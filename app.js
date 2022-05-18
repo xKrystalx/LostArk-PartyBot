@@ -5,7 +5,8 @@ const { InteractionType } = require('discord-api-types/v10');
 // Require the necessary discord.js classes
 const { Client, Intents, MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Permissions, Interaction, ApplicationCommand } = require('discord.js');
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize_fixtures = require('sequelize-fixtures');
+const fs = require('fs').promises;
+const path = require('path');
 
 const short_uuid = require('short-uuid');
 
@@ -43,34 +44,54 @@ Players.belongsTo(Classes, {foreignKey: 'class'})
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
-    // sequelize.sync({force: true}).then(async () =>{
-    //     await sequelize_fixtures.loadFile('./data/classes/*.json', {'Classes': Classes}).then(() => {
-    //         console.log("[Database] Classes loaded successfully.");
-    //     });
-    //     await sequelize_fixtures.loadFile('./data/dungeon_types/*.json', {'DungeonTypes': DungeonTypes}).then(() => {
-    //         console.log("[Database] Dungeon types loaded successfully.");
-    //     });
-    //     await sequelize_fixtures.loadFile('./data/dungeons/*.json', {'Dungeons': Dungeons}).then(() => {
-    //         console.log("[Database] Dungeons loaded successfully.");
-    //     });
-        
-    //     console.log('Ready!');
-    // }).catch(err => console.error(err));
+    //Load dungeon types
+    await DungeonTypes.sync().then(async () => {
+        let array = await parseJsonArrays('./data/dungeon_types/').catch(err => {
+            console.error(err);
+            return [];
+        });
+        if(array.length <= 0){
+            return;
+        }
 
-    await DungeonTypes.sync({alter: true}).then(async () => {
-        await sequelize_fixtures.loadFile('./data/dungeon_types/*.json', {'DungeonTypes': DungeonTypes}).then(() => {
+        //Update on change (but avoid changing the name which is the primary key)
+        await DungeonTypes.bulkCreate(array, {
+            updateOnDuplicate: Object.keys(array[0]).filter(key => key !== 'name'),
+        }).then(() => {
             console.log("[Database] Dungeon types loaded successfully.");
         });
     }).catch(err => console.error(err));
-    await Dungeons.sync({alter: true}).then(async () =>{
-        await sequelize_fixtures.loadFile('./data/dungeons/*.json', {'Dungeons': Dungeons}).then(() => {
+
+    //Load dungeons
+    await Dungeons.sync().then(async () =>{
+        let array = await parseJsonArrays('./data/dungeons/').catch(err => {
+            console.error(err);
+            return [];
+        });
+        if(array.length <= 0){
+            return;
+        }
+        await Dungeons.bulkCreate(array, {
+            updateOnDuplicate: Object.keys(array[0]).filter(key => key !== 'name'),
+        }).then(() => {
             console.log("[Database] Dungeons loaded successfully.");
         });
     }).catch(err => console.error(err));
-    await Classes.sync({alter: true}).then(async () =>{
-        await sequelize_fixtures.loadFile('./data/classes/*.json', {'Classes': Classes}).then(() => {
+
+    //Load classes
+    await Classes.sync().then(async () =>{
+        let array = await parseJsonArrays('./data/classes/').catch(err => {
+            console.error(err);
+            return [];
+        });
+        if(array.length <= 0){
+            return;
+        }
+        await Classes.bulkCreate(array, {
+            updateOnDuplicate: Object.keys(array[0]).filter(key => key !== 'name')
+        }).then(() => {
             console.log("[Database] Classes loaded successfully.");
-        });     
+        });
     }).catch(err => console.error(err));
 
     await Parties.sync();
@@ -209,8 +230,8 @@ client.on('interactionCreate', async interaction => {
         const embed = new MessageEmbed()
             .setColor(dungeon.color)
             .setURL((result != null && result[1] != null) ? result[1] : '')
-            .setTitle(dungeon.name)
-            .setDescription(`${dungeon.type}`)
+            .setTitle(dungeon.displayname)
+            .setDescription(`${dungeonType.displayname}`)
             .setThumbnail(dungeonType.image)
             .setImage(dungeon.image)
             .addFields(
@@ -248,7 +269,9 @@ client.on('interactionCreate', async interaction => {
         // // .setTimestamp()
         // // .setFooter({ text: `Party ID: ${party.id}`});
 
-        const classes = await Classes.findAll().catch(err => console.error(err));
+        const classes = await Classes.findAll({
+            order: [['name', 'ASC']],
+        }).catch(err => console.error(err));
 
         //interaction.guild.emojis.cache.find(emoji => emoji.name == '');
 
@@ -276,7 +299,7 @@ client.on('interactionCreate', async interaction => {
 
         await interaction.channel.threads.create({
             startMessage: msg,
-            name: dungeon.name,
+            name: dungeon.displayname,
             autoArchiveDuration: 4320
         }).catch(err => {
             console.error(err);
@@ -325,7 +348,7 @@ client.on('interactionCreate', async interaction => {
         }
         const dungeon = await Dungeons.findOne({
             where:{
-                name: dungeonName,
+                displayname: dungeonName,
             }
         }).catch(async err => {
             console.error(err);
@@ -662,7 +685,7 @@ async function sendDungeonMenu(interaction, description = "", eventUrl = null, e
     let options = [];
     dungeons.forEach(dungeon => {
         options.push({
-            label: dungeon.name,
+            label: dungeon.displayname,
             description: `Lv. ${dungeon.level}+`,
             value: dungeon.name,
         })
@@ -706,5 +729,22 @@ async function sendDungeonMenu(interaction, description = "", eventUrl = null, e
     else{
         await interaction.reply({embeds: [embed], ephemeral: true, components: [selectDungeons]}).catch(err => console.error(err));
     }
+}
+
+async function parseJsonArrays(directory){
+    return await fs.readdir(directory).then(async files => {
+        files.filter(file => path.extname(file) === '.json');
+
+        let array = [];
+        for(let file of files){
+            let content = await fs.readFile(directory + file).catch(err => {
+                throw Error(err);
+            });
+            array = array.concat(JSON.parse(content));
+        };
+        return array;
+    }).catch(err => {
+        throw Error(err);
+    });
 }
 //#endregion
