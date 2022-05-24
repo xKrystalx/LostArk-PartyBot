@@ -39,11 +39,13 @@ jobs:
         with:
           # relative path to the place where source code with Dockerfile is located
           context: .
+          push: true
           # Note: tags has to be all lower-case
           tags: |
             xkrystalx/lostark-partybot:latest
           platforms: linux/arm/v7
-          push: true
+          cache-from: type=registry,ref=xkrystalx/lostark-partybot:latest
+          cache-to: type=inline
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
