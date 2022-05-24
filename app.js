@@ -132,6 +132,13 @@ client.on('interactionCreate', async interaction => {
             ];
         }
 
+        //Check if bot can send a message here
+        if(!interaction.channel.permissionsFor(interaction.guild.me).has([Permissions.FLAGS.SEND_MESSAGES])){
+            let embed = getErrorEmbed("Missing permissions: [Send Messages]");
+            await interaction.reply({embeds: [embed], ephemeral:true}).catch(err => console.error(err));
+            return;
+        }
+
         const embed = new MessageEmbed()
         .setColor('#99ffff')
         .setTitle('Party')
@@ -259,6 +266,11 @@ client.on('interactionCreate', async interaction => {
                     .setCustomId('dungeon_delete')
                     .setLabel('Delete')
                     .setStyle('SECONDARY'),
+
+                new MessageButton()
+                    .setCustomId('dungeon_kick')
+                    .setLabel('Kick')
+                    .setStyle('SECONDARY'),
                 ]
         );
 
@@ -281,6 +293,7 @@ client.on('interactionCreate', async interaction => {
                 label: cls.name,
                 description: `${cls.type}`,
                 value: cls.name,
+                emoji: interaction.guild.emojis.cache.find(emoji => emoji.name === cls.name),
             })
         })
 
@@ -294,8 +307,14 @@ client.on('interactionCreate', async interaction => {
 
         const msg = await interaction.channel.send({embeds: [embed], components: [selectClasses, buttons]}).catch(err => {
             console.error(err);
-            return;
+            return null;
         });
+        if(msg == null){
+            let embed = getErrorEmbed("Error sending the message with party details.")
+            await interaction.reply({embeds:[embed], ephemeral:true}).catch(err=>console.error(err));
+            await party.destroy();
+            return;
+        }
 
         await interaction.channel.threads.create({
             startMessage: msg,
@@ -319,22 +338,19 @@ client.on('interactionCreate', async interaction => {
 //#region Class
     if(interaction.customId === "class"){
         const partyEmbed = interaction.message.embeds[0];
-        const footer = interaction.message.embeds[0].footer.text;
-        if(footer === undefined || footer === null){
-            console.error("[Party] No party ID found while handling class selection.")
-        }
 
-        //Get party id. Format: "Party ID: xxx"
-        const partyId = footer.split(':')[1].trim();
-
-        if(partyId === undefined){
-            console.error("[Party] No party ID present while handling class selection.");
+        const party = await getPartyFromFooter(interaction.message.embeds[0].footer.text);
+        if(party == null){
+            console.error("[Database] Party not found.");
+            const embed = getErrorEmbed("Party does not exist.");
+            await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
+            await interaction.message.delete().catch(err => console.error(err));
             return;
         }
 
         const playerData = {
             id: interaction.user.id,
-            party_id: partyId,
+            party_id: party.id,
             class: interaction.values[0],
         };
 
@@ -361,7 +377,7 @@ client.on('interactionCreate', async interaction => {
         }
 
         //Is there a spot for the player (be it full or no more class specific slots)
-        let result = await canPlayerJoin(playerData, partyId, dungeon, interaction).catch(err => {
+        let result = await canPlayerJoin(playerData, party.id, dungeon, interaction).catch(err => {
             console.error(err); 
         });
 
@@ -379,10 +395,18 @@ client.on('interactionCreate', async interaction => {
             await interaction.reply({embeds:[embed], ephemeral: true, components:[]}).catch(err => console.log(err));
             return;
         }
+        //Add player to the thread
+        interaction.channel.threads.fetch(interaction.message.id)
+            .then(thread => {
+                thread.members.add(partyMember.id, 'Joined the party.').catch(err=>console.error(err));
+            })
+            .catch(err => {
+                console.error(`[Join] No thread found (ID: ${party.id})`);
+            });
 
         embed = getSuccessEmbed('You have joined the party.');
 
-        await updatePartyMessage(partyId, interaction).catch(err => {
+        await updatePartyMessage(party.id, interaction).catch(err => {
             console.error(err);
             embed = getErrorEmbed('Error updating the party info.');
         });
@@ -390,6 +414,57 @@ client.on('interactionCreate', async interaction => {
         await interaction.reply({embeds:[embed], components:[], ephemeral: true}).catch(err => {
             console.error(err); 
         });
+    }
+//#endregion
+//#region Kick
+    if(interaction.customId === "kick"){
+        const party = await getPartyFromFooter(interaction.message.embeds[0].footer.text);
+        if(party == null){
+            console.error("[Database] Party not found.");
+            const embed = getErrorEmbed("Party does not exist.");
+            await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
+            await interaction.message.delete().catch(err => console.log(err));
+            return;
+        }
+
+        const player = await Players.findOne({
+            where:{
+                party_id: party.id,
+                id: interaction.values[0],
+            }
+        });
+        if(player == null){
+            let embed = getErrorEmbed("Player not found.");
+            await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
+            return;
+        }
+
+        //Player is getting kicked
+        await player.destroy();
+
+        const message = await interaction.message.fetchReference();
+        if(message == null){
+            let embed = getErrorEmbed("Party message not found.");
+            await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
+            return;
+        }
+        
+        //Delete player from the thread
+        interaction.channel.threads.fetch(message.id)
+            .then(thread => {
+                thread.members.remove(player.id, 'Kicked from party.').catch(err=>console.error(err));
+            })
+            .catch(err => {
+                console.error(`[Kick] No thread found (ID: ${party.id})`);
+            });
+
+        await updatePartyMessage(party.id, interaction, message).catch(err => {
+            console.error(err);
+            embed = getErrorEmbed('Error updating the party info.');
+        });
+
+        let embed = getSuccessEmbed(`Kicked: <@${player.id}>`);
+        await interaction.update({embeds:[embed], components:[], ephemeral:true}).catch(err => console.error(err));
     }
 //#endregion
 })
@@ -403,37 +478,19 @@ client.on('interactionCreate', async interaction => {
     if(!interaction.isButton()) return;
 //#region Leave
     if(interaction.customId == "dungeon_leave"){
-        const footer = interaction.message.embeds[0].footer.text;
-        if(footer === undefined || footer === null){
-            console.error("[Party] No party ID found while handling buttons.")
-        }
-
-        //Get party id. Format: "Party ID: xxx"
-        const partyId = footer.split(':')[1].trim();
-
-        if(partyId === undefined){
-            console.error("[Party] No party ID present while handling buttons.");
-        }
-
-        const party = await Parties.findOne({
-            where:{
-                id: partyId,
-            }
-        }).catch(err => {
-            console.error(err);
-        })
-
-        if(party === null){
+        const party = await getPartyFromFooter(interaction.message.embeds[0].footer.text);
+        if(party == null){
             console.error("[Database] Party not found.");
             const embed = getErrorEmbed("Party does not exist.");
             await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
-            await interaction.message.destroy();
+            await interaction.message.delete().catch(err => console.error(err));
             return;
         }
 
+
         const player = await Players.findOne({where: {
             id: interaction.user.id,
-            party_id: partyId,
+            party_id: party.id,
         }})
         if(player === null){
             let embed = getErrorEmbed("You're not in the party.");
@@ -442,7 +499,16 @@ client.on('interactionCreate', async interaction => {
         }
         player.destroy();
 
-        await updatePartyMessage(partyId, interaction);
+        //Delete player from the thread
+        interaction.channel.threads.fetch(interaction.message.id)
+            .then(thread => {
+                thread.members.remove(player.id, 'Left the party.').catch(err=>console.error(err));
+            })
+            .catch(err => {
+                console.error(`[Kick] No thread found (ID: ${party.id})`);
+            });
+
+        await updatePartyMessage(party.id, interaction);
 
         let embed = getSuccessEmbed('You have left the party.');
         await interaction.reply({embeds: [embed], ephemeral:true}).catch(err => console.error(err));
@@ -457,26 +523,9 @@ if(interaction.customId == "dungeon_delete"){
         await interaction.reply({embeds:[embed], ephemeral:true});
         return;
     }
-    const footer = interaction.message.embeds[0].footer.text;
-    if(footer === undefined || footer === null){
-        console.error("[Party] No party ID found while handling buttons.")
-    }
 
-    //Get party id. Format: "Party ID: xxx"
-    const partyId = footer.split(':')[1].trim();
-
-    if(partyId === undefined){
-        console.error("[Party] No party ID present while handling buttons.");
-    }
-
-    const party = await Parties.findOne({
-        where:{
-            id: partyId,
-        }
-    }).catch(err => {
-        console.error(err);
-    })
-    if(party === null){
+    const party = await getPartyFromFooter(interaction.message.embeds[0].footer.text);
+    if(party == null){
         console.error("[Database] Party not found.");
         const embed = getErrorEmbed("Couldn't delete (Party does not exist).");
         //Delete the thread
@@ -484,7 +533,7 @@ if(interaction.customId == "dungeon_delete"){
         if(thread !== null) await thread.delete().catch(err => console.error(err));
 
         await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
-        await interaction.message.delete();
+        await interaction.message.delete().catch(err => console.error(err));
         return;
     }
 
@@ -501,6 +550,64 @@ if(interaction.customId == "dungeon_delete"){
     await interaction.message.delete().catch(err => console.error(err));
     await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
 }
+//#endregion
+//#region Kick
+    if(interaction.customId == "dungeon_kick"){
+        if(!interaction.member.permissions.has([Permissions.FLAGS.MANAGE_MESSAGES])){
+            embed = getErrorEmbed("Cheeky, aren't you?");
+            await interaction.reply({embeds:[embed], ephemeral:true});
+            return;
+        }
+
+        const party = await getPartyFromFooter(interaction.message.embeds[0].footer.text);
+        if(party == null){
+            console.error("[Database] Party not found.");
+            const embed = getErrorEmbed("Party does not exist.");
+            await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
+            await interaction.message.delete().catch(err => console.error(err));
+            return;
+        }
+
+        const players = await Players.findAll({
+            where:{
+                party_id: party.id
+            }
+        });
+        if(players == null || players.length == 0){
+            let embed = getErrorEmbed("No players found.");
+            await interaction.reply({embeds: [embed], ephemeral:true}).catch(err=>console.error(err));
+            return;
+        }
+
+        let options = [];
+
+        for(let player of players){
+            let member = await interaction.guild.members.fetch(player.id);
+            options.push({
+                label: member != null ? member.nickname : player.id,
+                description: player.class,
+                value: player.id,
+                emoji: interaction.guild.emojis.cache.find(emoji => emoji.name === player.class),
+            })
+        }
+
+        const kickEmbed = new MessageEmbed()
+        .setColor('#8888ff')
+        .setTitle("『 Kick 』")
+        .setDescription("Select the player to kick from the menu below.")
+        .setTimestamp()
+        .setFooter({ text: `Party ID: ${party.id}`});
+
+        const selectPlayers = new MessageActionRow()
+        .addComponents(
+            new MessageSelectMenu()
+                .setCustomId('kick')
+                .setPlaceholder('Select a player to kick...')
+                .addOptions(options)
+            );
+
+        await interaction.reply({embeds:[interaction.message.embeds[0], kickEmbed], components:[selectPlayers], ephemeral: true}).catch(err=>console.error(err));
+    }
 //#endregion
 })
 
@@ -535,8 +642,9 @@ function getSuccessEmbed(msg, footer = 'Happy noises'){
     .setFooter({text: `${footer}`});
 }
 
-async function updatePartyMessage(partyId, interaction){
-    const partyEmbed = interaction.message.embeds[0];
+async function updatePartyMessage(partyId, interaction, msg = null){
+    const message = msg != null ? msg : interaction.message;
+    const partyEmbed = message.embeds[0];
     // const classEmbed = interaction.message.embeds[1];
     //Get playerCount
     const countField = partyEmbed.fields.find(field => field.name.toLowerCase() === 'players');
@@ -581,7 +689,7 @@ async function updatePartyMessage(partyId, interaction){
         })
         .spliceFields(3, 1, field);
 
-    await interaction.message.edit({embeds:[embed]}).catch(err => console.error(err));
+    await message.edit({embeds:[embed]}).catch(err => console.error(err));
 }
 
 async function canPlayerJoin(playerData, partyId, dungeon, interaction){
@@ -599,8 +707,8 @@ async function canPlayerJoin(playerData, partyId, dungeon, interaction){
     }
 
     //If full
-    if(partyCount == dungeon.player_count){
-        const embed = getErrorEmbed('Party is full.', `Party ID: ${party.id}`);
+    if(partyCount >= dungeon.player_count){
+        const embed = getErrorEmbed('Party is full.', `Party ID: ${partyId}`);
 
         await interaction.reply({embeds:[embed], ephemeral: true}).catch(err => console.error(err));
         return false;
@@ -729,6 +837,28 @@ async function sendDungeonMenu(interaction, description = "", eventUrl = null, e
     else{
         await interaction.reply({embeds: [embed], ephemeral: true, components: [selectDungeons]}).catch(err => console.error(err));
     }
+}
+
+async function getPartyFromFooter(footer){
+    if(footer === undefined || footer === null){
+        console.error("[Party] No party ID found while handling buttons.")
+    }
+
+    //Get party id. Format: "Party ID: xxx"
+    const partyId = footer.split(':')[1].trim();
+
+    if(partyId === undefined){
+        console.error("[Party] No party ID present while handling buttons.");
+    }
+
+    return await Parties.findOne({
+        where:{
+            id: partyId,
+        }
+    }).catch(err => {
+        console.error(err);
+        return null;
+    })
 }
 
 async function parseJsonArrays(directory){
