@@ -139,6 +139,12 @@ client.on('interactionCreate', async interaction => {
             return;
         }
 
+        if(!interaction.channel.viewable){
+            let embed = getErrorEmbed("No access to the channel.");
+            await interaction.reply({embeds: [embed], ephemeral:true}).catch(err => console.error(err));
+            return;
+        }
+
         const embed = new MessageEmbed()
         .setColor('#99ffff')
         .setTitle('Party')
