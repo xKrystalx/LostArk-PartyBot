@@ -590,7 +590,7 @@ if(interaction.customId == "dungeon_delete"){
         for(let player of players){
             let member = await interaction.guild.members.fetch(player.id);
             options.push({
-                label: member != null ? member.nickname : `${player.id}`,
+                label: member != null ? `${member.nickname}` : `${player.id}`,
                 description: player.class,
                 value: `${player.id}`,
                 emoji: interaction.guild.emojis.cache.find(emoji => emoji.name === player.class),
