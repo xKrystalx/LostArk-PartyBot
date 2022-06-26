@@ -21,7 +21,7 @@ module.exports = function(sequelize, DataTypes){
         },
         role_limit:{
             type: DataTypes.BOOLEAN,
-            defaultValue: false
+            defaultValue: 0,
         }
     })
 };

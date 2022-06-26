@@ -251,7 +251,7 @@ client.on('interactionCreate', async interaction => {
                 { name: 'Description', value: `${party.description}`, inline: false},
                 { name: 'Players', value: `0 / ${dungeon.player_count}`, inline: true },
                 { name: 'Rec. Level', value: `${dungeon.level}+`, inline: true},
-                { name: 'Role Limit', value: `${party.role_limit != false ? "Yes":"No"}`},
+                { name: 'Role Limit', value: `${party.role_limit != false ? "Yes":"No"}`, inline: true},
                 // { name: '\u200b', value: '―――――――――――――――――――――――――――――'},
             )
             .setTimestamp()
