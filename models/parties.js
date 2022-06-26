@@ -19,5 +19,9 @@ module.exports = function(sequelize, DataTypes){
         owner_id:{
             type: DataTypes.STRING,
         },
+        role_limit:{
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        }
     })
 };

@@ -251,6 +251,7 @@ client.on('interactionCreate', async interaction => {
                 { name: 'Description', value: `${party.description}`, inline: false},
                 { name: 'Players', value: `0 / ${dungeon.player_count}`, inline: true },
                 { name: 'Rec. Level', value: `${dungeon.level}+`, inline: true},
+                { name: 'Role Limit', value: `${party.role_limit != false ? "Yes":"No"}`},
                 // { name: '\u200b', value: '―――――――――――――――――――――――――――――'},
             )
             .setTimestamp()
@@ -524,11 +525,6 @@ client.on('interactionCreate', async interaction => {
 
 if(interaction.customId == "dungeon_delete"){
     let embed;
-    if(!interaction.member.permissions.has([Permissions.FLAGS.MANAGE_MESSAGES])){
-        embed = getErrorEmbed("Cheeky, aren't you?");
-        await interaction.reply({embeds:[embed], ephemeral:true});
-        return;
-    }
 
     const party = await getPartyFromFooter(interaction.message.embeds[0].footer.text);
     if(party == null){
@@ -540,6 +536,13 @@ if(interaction.customId == "dungeon_delete"){
 
         await interaction.reply({embeds:[embed], ephemeral:true}).catch(err => console.error(err));
         await interaction.message.delete().catch(err => console.error(err));
+        return;
+    }
+    
+    //Check Permissions (Allow owners delete)
+    if(!interaction.member.permissions.has([Permissions.FLAGS.MANAGE_MESSAGES]) || interaction.member.id != party.owner_id){
+        embed = getErrorEmbed("Cheeky, aren't you?");
+        await interaction.reply({embeds:[embed], ephemeral:true});
         return;
     }
 
@@ -693,7 +696,7 @@ async function updatePartyMessage(partyId, interaction, msg = null){
             value: `${currentPlayers.length} / ${maxPlayers}`,
             inline: true,
         })
-        .spliceFields(3, 1, field);
+        .spliceFields(4, 1, field);
 
     await message.edit({embeds:[embed]}).catch(err => console.error(err));
 }
@@ -731,6 +734,23 @@ async function canPlayerJoin(playerData, partyId, dungeon, interaction){
         let embed = getErrorEmbed("Already in the party.");
         await interaction.reply({embeds:[embed], ephemeral:true});
         return false;
+    }
+
+    const party = await Parties.findOne({
+        where:{
+            id: partyId,
+        }
+    })
+
+    //Check if party is role limited
+    if(party === null){
+        let embed = getErrorEmbed(`Error fetching party data.`);
+        await interaction.reply({embeds:[embed], ephemeral:true, components:[]}).catch(err => console.log(err));
+        return false;
+    }
+    //if not let em join since other checks have passed.
+    if(party.role_limit != true){
+        return true;
     }
 
     const playerClassType = await Classes.findOne({
