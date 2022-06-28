@@ -16,5 +16,23 @@
         "level": 1445,
         "color": "#ce2030",
         "image": "https://i.imgur.com/4tBS3J2.png"
+    },
+    {
+        "name": "vykas",
+        "displayname": "Vykas",
+        "player_count": 8,
+        "type": "legion_raid",
+        "level": 1430,
+        "color": "#ff77bb",
+        "image": "https://i.imgur.com/iAZy63f.png"
+    },
+    {
+        "name": "vykas_hard",
+        "displayname": "Vykas [Hard]",
+        "player_count": 8,
+        "type": "legion_raid",
+        "level": 1460,
+        "color": "#a8004f",
+        "image": "https://i.imgur.com/DB3YqPh.png"
     }
 ]

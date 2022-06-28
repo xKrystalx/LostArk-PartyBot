@@ -12,5 +12,5 @@ module.exports = {
         .setDescription('Is party using a scheduled event?'))
     .addBooleanOption(option => option
             .setName('role_limit')
-            .setDescription('Is party role limited (ie. limit DPS to 3/4ths of a party)?'))
+            .setDescription('(Optional) Is party role limited (ie. limit DPS to 3/4ths of a party)? (Default: No)'))
 };

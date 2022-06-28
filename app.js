@@ -128,8 +128,17 @@ client.on('interactionCreate', async interaction => {
             fields = [
                 // { name: '\u200b', value: '\u200b'},
                 // { name: '『 Party details 』', value: '\u200b'},
-                { name: 'Description', value: description},
+                { name: 'Description', value: description, inline: true},
             ];
+        }
+
+        if(interaction.options.getBoolean('role_limit') != null){
+            role_limit = interaction.options.getBoolean('role_limit');
+            fields.push({
+                name: 'Role Limit',
+                value: interaction.options.getBoolean('role_limit').toString(),
+                inline: true,
+            })
         }
 
         //Check if bot can send a message here
@@ -152,12 +161,11 @@ client.on('interactionCreate', async interaction => {
         .addFields(fields)
         .setTimestamp();
 
-
         let component;
         if(interaction.options.getBoolean('has_event')){
             const scheduledEvents = await interaction.guild.scheduledEvents.fetch();
             if(scheduledEvents == null){
-                await sendDungeonMenu(interaction).catch(err => console.error(err));
+                await sendDungeonMenu(interaction, fields).catch(err => console.error(err));
                 return;
             }
             let options = [];
@@ -179,7 +187,7 @@ client.on('interactionCreate', async interaction => {
             return;
         }
         else{
-            await sendDungeonMenu(interaction, description).catch(err => console.error(err));
+            await sendDungeonMenu(interaction, fields).catch(err => console.error(err));
             return;
         }
     }
@@ -195,9 +203,27 @@ client.on('interactionCreate', async interaction => {
     if(interaction.customId === "dungeon_event"){
 
         let description = interaction.message.embeds[0].fields.find(field => field.name.toLowerCase() === 'description');
-        description = description != null ? description.value : "";
+        let role_limit = interaction.message.embeds[0].fields.find(field => field.name.toLowerCase() === 'role limit');
 
-        await sendDungeonMenu(interaction, description, interaction.values[0], true);
+        let fields = [];
+
+        if(description != null){
+            fields.push(
+                {name: 'Description', value: description, inline: true}
+            );
+        };
+
+        if(role_limit != null){
+            fields.push(
+                {name: 'Role Limit', value: role_limit = role_limit.value === 'true' , inline: true,}
+            );
+        }
+
+        fields.push(
+            {name: 'Event', value: `[Event Link](${interaction.values[0]})`},
+        );
+
+        await sendDungeonMenu(interaction, fields, true);
     }
 //#endregion
 
@@ -222,12 +248,13 @@ client.on('interactionCreate', async interaction => {
         }
 
         const selectionEmbed = interaction.message.embeds[0].fields.find(field => field.name.toLowerCase() === "description")
-
+        const role_limit = interaction.message.embeds[0].fields.find(field => field.name.toLowerCase() === "role limit")
         const partyData = {
             id: short_uuid.generate(),
             type: dungeon.name,
             owner_id: interaction.user.id,
             description: selectionEmbed !== undefined ?  selectionEmbed.value : "\u200b",
+            role_limit: role_limit != null ? role_limit.value === 'true' : false,
         }
 
         const party = await Parties.create(partyData);
@@ -540,7 +567,7 @@ if(interaction.customId == "dungeon_delete"){
     }
     
     //Check Permissions (Allow owners delete)
-    if(!interaction.member.permissions.has([Permissions.FLAGS.MANAGE_MESSAGES]) || interaction.member.id != party.owner_id){
+    if(!interaction.member.permissions.has([Permissions.FLAGS.MANAGE_MESSAGES]) && interaction.member.id != party.owner_id){
         embed = getErrorEmbed("Cheeky, aren't you?");
         await interaction.reply({embeds:[embed], ephemeral:true});
         return;
@@ -808,7 +835,7 @@ async function canPlayerJoin(playerData, partyId, dungeon, interaction){
     return true;
 }
 
-async function sendDungeonMenu(interaction, description = "", eventUrl = null, editMessage = false){
+async function sendDungeonMenu(interaction, fields, editMessage = false){
     const dungeons = await Dungeons.findAll().catch(err => console.error(err));
 
     if(dungeons == null){
@@ -832,23 +859,6 @@ async function sendDungeonMenu(interaction, description = "", eventUrl = null, e
                 .setPlaceholder('Select a dungeon...')
                 .addOptions(options)
     );
-
-    let fields = [];
-    if(description != ""){
-        fields.push({
-            name: 'Description', 
-            value: description, 
-            inline: true,
-        });
-    }
-
-    if(eventUrl !== null){
-        fields.push({
-            name: 'Event', 
-            value: `[Event link](${eventUrl})`, 
-            inline:true
-        })
-    }
 
     const embed = new MessageEmbed()
     .setColor('#99ffff')
