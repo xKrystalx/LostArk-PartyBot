@@ -19,11 +19,6 @@ module.exports = function(sequelize, DataTypes){
                 model: 'Classes',
                 key: 'name',
             }
-        },
-        level:{
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            defaultValue: 0
         }
     })
 };
