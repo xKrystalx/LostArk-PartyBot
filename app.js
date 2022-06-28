@@ -209,18 +209,19 @@ client.on('interactionCreate', async interaction => {
 
         if(description != null){
             fields.push(
-                {name: 'Description', value: description, inline: true}
+                {name: 'Description', value: description.value, inline: true}
             );
         };
 
         if(role_limit != null){
+            role_limit = (role_limit.value === 'true').toString();
             fields.push(
-                {name: 'Role Limit', value: role_limit = role_limit.value === 'true' , inline: true,}
+                {name: 'Role Limit', value: role_limit, inline: true,}
             );
         }
 
         fields.push(
-            {name: 'Event', value: `[Event Link](${interaction.values[0]})`},
+            {name: 'Event', value: `[Event Link](${interaction.values[0]})`, inline: true},
         );
 
         await sendDungeonMenu(interaction, fields, true);
@@ -352,7 +353,7 @@ client.on('interactionCreate', async interaction => {
 
         await interaction.channel.threads.create({
             startMessage: msg,
-            name: dungeon.displayname,
+            name: `${dungeon.displayname} || ${party.description}`,
             autoArchiveDuration: 4320
         }).catch(err => {
             console.error(err);
