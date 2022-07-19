@@ -18,6 +18,15 @@
         "image": "https://i.imgur.com/4tBS3J2.png"
     },
     {
+        "name": "valtan_inferno",
+        "displayname": "Valtan [Inferno]",
+        "player_count": 8,
+        "type": "legion_raid",
+        "level": 1445,
+        "color": "#ff7300",
+        "image": "https://i.imgur.com/cLea5Mz.png"
+    },
+    {
         "name": "vykas",
         "displayname": "Vykas",
         "player_count": 8,
