@@ -1,5 +1,5 @@
 # LostArk-PartyBot
-Discord bot written with discord.js - party creation for the game Lost Ark
+Discord bot written with discord.js - party creation for the game Lost Ark. Bot also uses Docker and Github Actions to automate builds.
 
 A Discord bot written in JavaScript with discord.js library aiming to assist with organizing parties for various game sessions in a popular video game “Lost Ark”. Most notable features include:
 
